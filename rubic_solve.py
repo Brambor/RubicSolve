@@ -32,7 +32,7 @@ bottom
 	210
 	543
 	876
-	
+
 	012
 	345
 	678
@@ -58,10 +58,10 @@ class Cube():
 			self.turn_front_right,
 			self.turn_front_left,
 		)
-	
+
 	def __eq__(self, other):
 		return type(other) == type(self) and self.cube == other.cube
-	
+
 	def print_gen(self, side, order):
 		for i, o in enumerate(order):
 				out(self.cube[side][o])
@@ -79,7 +79,7 @@ class Cube():
 				(0,1,2,3,4,5,6,7,8),
 			))
 		)
-				
+
 	def print(self):
 		sides = self.get_sides()
 		for _ in range(3):
@@ -110,11 +110,11 @@ class Cube():
 		self._turn_adjacent_sides((0,1,3,4),(
 			((i for _ in range(4)) for i in range(3))
 		))
-	
+
 	def turn_top_left(self):
 		for _ in range(3):
 			self.turn_top_right()
-		
+
 	def turn_right_back(self):
 		self._turn_same_side(3, (2,5,8,1,7,0,3,6))
 		self._turn_adjacent_sides((0,2,4,5), (
@@ -122,7 +122,7 @@ class Cube():
 			(5,5,3,5),
 			(2,8,6,8),
 		))
-	
+
 	def turn_right_front(self):
 		for _ in range(3):
 			self.turn_right_back()
@@ -134,17 +134,17 @@ class Cube():
 			(3,3,5,3),
 			(0,6,8,6),
 		))
-	
+
 	def turn_left_front(self):
 		for _ in range(3):
 			self.turn_left_back()
-	
+
 	def turn_bottom_right(self):
 		self._turn_same_side(5, (2,5,8,1,7,0,3,6))
 		self._turn_adjacent_sides((0,1,3,4),
 			((i for _ in range(4)) for i in range(6,9))
 		)
-	
+
 	def turn_bottom_left(self):
 		for _ in range(3):
 			self.turn_bottom_right()
@@ -156,7 +156,7 @@ class Cube():
 			(1,3,1,5),
 			(2,6,2,2),
 		))
-	
+
 	def turn_back_left(self):
 		for _ in range(3):
 			self.turn_back_right()
@@ -168,16 +168,16 @@ class Cube():
 			(1,5,7,3),
 			(0,8,8,0),
 		))
-	
+
 	def turn_front_left(self):
 		for _ in range(3):
 			self.turn_front_right()
-	
+
 	#-----------------------------
 
 	def is_solved(self):
 		return self == solved_cube
-	
+
 	def BFS_layer(self, depth=0, cube_start=None):
 		for a in range(len(self.actions)):
 			if cube_start == None:
