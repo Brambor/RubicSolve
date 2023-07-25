@@ -1,4 +1,8 @@
 from copy import deepcopy
+from queue import Queue
+from random import randint
+from time import time
+
 print("Rubic's cube")
 
 def out(*args, **kwargs):
@@ -42,8 +46,12 @@ class Cube():
 	def __init__(self, other=None):
 		if other == None:
 			self.cube = list(list(j for _ in range(9)) for j in range(6))
+		elif type(other) == Cube:
+			self.cube = deepcopy(other.cube)  # TODO shallow copy from tuples
+		elif type(other) == tuple:
+			self.cube = other
 		else:
-			self.cube = deepcopy(other.cube)
+			raise ValueError
 		self.actions = (
 			self.turn_top_right,
 			self.turn_top_left,
@@ -61,6 +69,9 @@ class Cube():
 
 	def __eq__(self, other):
 		return type(other) == type(self) and self.cube == other.cube
+
+	def cube_tuple(self):
+		return tuple(tuple(side) for side in self.cube)
 
 	def print_gen(self, side, order):
 		for i, o in enumerate(order):
@@ -94,9 +105,17 @@ class Cube():
 			sp(4), sides[5].__next__(), nl()
 		print("---------")
 
+	# Scramble cube by doing @turns ranbom moves
+	def scramble(self, turns):
+		for _ in range(turns):
+			self.actions[randint(0, len(self.actions))-1]()
+
 	def _turn_same_side(self, side, order):
 		c = self.cube[side]
 		c[0], c[1], c[2], c[3], c[5], c[6], c[7], c[8] = c[order[0]], c[order[1]], c[order[2]], c[order[3]], c[order[4]], c[order[5]], c[order[6]], c[order[7]]  # note missing 4
+
+	def _turn_same_side_tuple(self, side, order):
+		c = self.cube[side]
 		return c[order[0]], c[order[1]], c[order[2]], c[order[3]], c[4], c[order[4]], c[order[5]], c[order[6]], c[order[7]]
 
 	def _turn_adjacent_sides(self, sides, orders):
@@ -163,7 +182,7 @@ class Cube():
 
 	def turn_front_right(self):
 		self._turn_same_side(4, (8,5,2,7,1,6,3,0))
-		self._turn_adjacent_sides((5,3,2,1), ( # wrong?
+		self._turn_adjacent_sides((5,3,2,1), (  # TODO wrong?
 			(2,2,6,6),
 			(1,5,7,3),
 			(0,8,8,0),
@@ -178,17 +197,55 @@ class Cube():
 	def is_solved(self):
 		return self == solved_cube
 
-	def BFS_layer(self, depth=0, cube_start=None):
-		for a in range(len(self.actions)):
-			if cube_start == None:
-				cube = Cube(self)
-			else:
-				cube = Cube(cube_start)
-			cube.actions[a]()
-			if depth <= 0:
-				cube.print()
-			else:
-				self.BFS_layer(depth-1, cube)
+	def BFS_layer(self):
+		if self.is_solved():
+			print("Cube is already solved")
+			return
+		q_current = Queue()
+		q_next = Queue()
+		depth = 1
+		start_time = time()
+		solutions = {}
+
+		cube = Cube(self)
+		# add the search start point
+		solutions[cube.cube_tuple()] = None
+
+		q_current.put(cube)
+		while True:
+			while not q_current.empty():
+				cube_expand = q_current.get()
+				for a in range(len(self.actions)):
+					cube = Cube(cube_expand)
+
+					cube.actions[a]()
+
+					cube_tuple = cube.cube_tuple()
+					# skip already explored
+					if cube_tuple in solutions:
+						continue
+
+					# save which action was performed
+					solutions[cube_tuple] = a
+
+					if cube.is_solved():
+						print("Solved!")
+						print(f"depth: {depth}, states: {len(solutions)}, time: {time() - start_time}")
+						self.back_track()
+						return
+					q_next.put(cube)
+			if q_next.empty():
+				print("All states explored, cube cannot be solved.")
+				return
+			print(f"depth: {depth}, states: {len(solutions)}, time: {time() - start_time}")
+			q_current = q_next
+			q_next = Queue()
+			depth += 1
+
+	# TODO: print reverse of actions to show solution
+	def back_track(self):
+		pass
+
 
 solved_cube = Cube()
 
@@ -208,4 +265,6 @@ rb.turn_left_back()
 #rb.print()
 
 rb = Cube()
-rb.BFS_layer(1)
+rb.scramble(4)
+
+rb.BFS_layer()
